@@ -28,3 +28,47 @@ help: ## Show this message.
 		'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / \
 		{printf "$(CYAN)%-8s$(WHITE) : %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
+.PHONY: init
+init: python ## Init workspace.
+
+.PHONY: install-pyenv
+install-pyenv: # Install pyenv.
+
+	@which pyenv \
+	|| ( \
+		echo -e "$(YELLOW)--- Installing pyenv ---$(WHITE)" \
+		&& sudo apt-get install -y \
+			libssl-dev \
+			zlib1g-dev \
+			libbz2-dev \
+			libreadline-dev \
+			libsqlite3-dev \
+			wget \
+			curl \
+			llvm \
+			libncurses5-dev \
+			libncursesw5-dev \
+			xz-utils \
+			tk-dev \
+		&& PYENV_ROOT=$(PYENV_ROOT) bash $(PYENV_INSTALLER) \
+		&& echo "export PATH='$$HOME/.pyenv/bin:$$PATH'" >> $$HOME/.bashrc \
+		&& echo 'eval "$(pyenv init -)"' >> $$HOME/.bashrc \
+		&& echo 'eval "$(pyenv virtualenv-init -)"' >> $$HOME/.bashrc \
+		&& source $$HOME/.bashrc \
+		&& echo -e "$(GREEN)--- pyenv installed ---$(WHITE)" \
+	)
+
+.PHONY: update-pyenv
+update-pyenv: install-pyenv # Update pyenv to get latest versions.
+
+	@echo -e "$(YELLOW)--- Updating Pyenv ---$(WHITE)" \
+	&& cd $(PYENV_ROOT) && git pull && cd - \
+	&& echo -e "$(GREEN)--- pyenv updated ---$(WHITE)"
+
+.PHONY: python
+python: update-pyenv # Install python(from .python-version).
+
+	@echo -e "$(YELLOW)--- Installing python $(PYTHON_VERSION) ---$(WHITE)" \
+	&& pyenv install -s "$(PYTHON_VERSION)" \
+	&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)"
+
