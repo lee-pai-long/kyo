@@ -3,3 +3,4 @@ __py*
 *.pyc
 !.git*
 !.python-version
+!.editorconfig
