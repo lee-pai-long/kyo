@@ -22,8 +22,8 @@ PYTHON_VERSION	= $$(cat .python-version)
 .PHONY: help
 help: ## Show this message.
 
-	@echo "usage: make [task]" \
-	&& echo "available tasks:" \
+	@echo -e "Usage: make [task]\n" \
+	&& echo "Available tasks:" \
 	&& awk \
 		'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / \
 		{printf "$(CYAN)%-8s$(WHITE) : %s\n", $$1, $$2}' $(MAKEFILE_LIST)
