@@ -10,6 +10,7 @@ insert_final_newline = true
 trim_trailing_whitespace = true
 end_of_line = lf
 charset = utf-8
+# Docstrings and comments use 72 as max line length (see PEP8).
 max_line_length = 89
 
 [Makefile,*.mk]
