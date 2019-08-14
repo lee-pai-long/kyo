@@ -15,9 +15,16 @@ BLUE   = \033[38;05;33m
 CYAN   = \033[38;05;14m
 ORANGE = \033[38;05;14m
 
+PROJECT_NAME    = $$(basename $$PWD)
 PYENV_ROOT	    = $$HOME/.pyenv
 PYENV_INSTALLER	= ./bin/pyenv-installer.sh
 PYTHON_VERSION	= $$(cat .python-version)
+BRANCH_NAME     = $$(git rev-parse --abbrev-ref HEAD)
+VIRTUALENV_NAME = $(PROJECT_NAME)-$(BRANCH_NAME)
+VIRTUALENV_DIR  = $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NAME)
+VIRTUALENV_BIN  = $(VIRTUALENV_DIR)/bin
+PIP             = $(VIRTUALENV_BIN)/pip
+REQUIREMENTS    = ./requirements.txt
 
 .PHONY: help
 help: ## Show this message.
@@ -29,7 +36,7 @@ help: ## Show this message.
 		{printf "$(CYAN)%-8s$(WHITE) : %s\n", $$1, $$2}' $(MAKEFILE_LIST)
 
 .PHONY: init
-init: python ## Init workspace.
+init: python requirements ## Init workspace.
 
 .PHONY: install-pyenv
 install-pyenv: # Install pyenv.
@@ -71,4 +78,23 @@ python: update-pyenv # Install python(from .python-version).
 	@echo -e "$(YELLOW)--- Installing python $(PYTHON_VERSION) ---$(WHITE)" \
 	&& pyenv install -s "$(PYTHON_VERSION)" \
 	&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)"
+
+.PHONY: venv
+venv: python # Create a virtualenv in the current python version.
+
+	@[ ! -d "$(VIRTUALENV_DIR)" ] \
+	&& ( \
+		echo -e "$(YELLOW)--- Creating virtualenv $(VIRTUALENV_NAME) ---$(WHITE)" \
+		&& pyenv virtualenv "$(PYTHON_VERSION)" "$(VIRTUALENV_NAME)" \
+		&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)" \
+	) \
+	||:
+
+.PHONY: requirements
+requirements: venv ## Install (or update) requirements.
+
+	@echo -e "$(YELLOW)--- Installing requirements ---$(WHITE)" \
+	&& $(PIP) install --upgrade pip \
+	&& $(PIP) install --upgrade --requirement $(REQUIREMENTS) \
+	&& echo -e "$(GREEN)--- requirements installed ---$(WHITE)"
 
