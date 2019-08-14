@@ -15,17 +15,17 @@ BLUE   = \033[38;05;33m
 CYAN   = \033[38;05;14m
 ORANGE = \033[38;05;14m
 
-PROJECT_NAME    = $$(basename $$PWD)
-PYENV_ROOT	    = $$HOME/.pyenv
-PYENV_INSTALLER	= ./bin/pyenv-installer.sh
-PYTHON_VERSION	= $$(cat .python-version)
-BRANCH_NAME     = $$(git rev-parse --abbrev-ref HEAD)
-VIRTUALENV_NAME = $(PROJECT_NAME)-$(BRANCH_NAME)
-VIRTUALENV_DIR  = $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NAME)
-VIRTUALENV_BIN  = $(VIRTUALENV_DIR)/bin
-PIP             = $(VIRTUALENV_BIN)/pip
-REQUIREMENTS    = ./requirements.txt
-TO_CLEAN        = *.pyc *.orig
+PROJECT_NAME    ?= $$(basename $$PWD)
+PYENV_ROOT      ?= $$HOME/.pyenv
+PYENV_INSTALLER ?= ./bin/pyenv-installer.sh
+PYTHON_VERSION  ?= $$(cat .python-version)
+BRANCH_NAME     ?= $$(git rev-parse --abbrev-ref HEAD)
+VIRTUALENV_NAME ?= $(PROJECT_NAME)-$(BRANCH_NAME)
+VIRTUALENV_DIR  ?= $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NAME)
+VIRTUALENV_BIN  ?= $(VIRTUALENV_DIR)/bin
+PIP             ?= $(VIRTUALENV_BIN)/pip
+REQUIREMENTS    ?= ./requirements.txt
+TO_CLEAN        ?= *.pyc *.orig
 
 
 .PHONY: help
