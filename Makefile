@@ -111,10 +111,10 @@ requirements: venv ## Install (or update) requirements.
 max-length: # Return the length of the longest explosed(commented with ##) rule name.
 
 	@$(eval MAX_LENGTH := $(shell \
-        awk ' \
-		    BEGIN {FS = ":.*?## "} \
-		    /^[a-zA-Z_-]+:.*?## / \
-		    {print length($$1)} \
-	    ' $(MAKEFILE_LIST) \
-	    | awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
-    ))
+		awk ' \
+			BEGIN {FS = ":.*?## "} \
+			/^[a-zA-Z_-]+:.*?## / \
+			{print length($$1)} \
+		' $(MAKEFILE_LIST) \
+		| awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
+	))
