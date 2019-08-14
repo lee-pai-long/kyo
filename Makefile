@@ -29,13 +29,15 @@ TO_CLEAN        = *.pyc *.orig
 
 
 .PHONY: help
-help: ## Show this message.
+help: max-length ## Show this message.
 
 	@echo -e "Usage: make [task]\n" \
 	&& echo "Available tasks:" \
-	&& awk \
-		'BEGIN {FS = ":.*?## "} /^[a-zA-Z_-]+:.*?## / \
-		{printf "$(CYAN)%-8s$(WHITE) : %s\n", $$1, $$2}' $(MAKEFILE_LIST)
+	&& awk ' \
+			BEGIN {FS = ":.*?## "} \
+			/^[a-zA-Z_-]+:.*?## / \
+			{printf "$(CYAN)%-$(MAX_LENGTH)s$(WHITE) : %s\n", $$1, $$2} \
+	   ' $(MAKEFILE_LIST)
 
 .PHONY: init
 init: python requirements ## Init workspace.
@@ -105,3 +107,14 @@ requirements: venv ## Install (or update) requirements.
 	&& $(PIP) install --upgrade --requirement $(REQUIREMENTS) \
 	&& echo -e "$(GREEN)--- requirements installed ---$(WHITE)"
 
+.PHONY: max-length
+max-length: # Return the length of the longest explosed(commented with ##) rule name.
+
+	@$(eval MAX_LENGTH := $(shell \
+        awk ' \
+		    BEGIN {FS = ":.*?## "} \
+		    /^[a-zA-Z_-]+:.*?## / \
+		    {print length($$1)} \
+	    ' $(MAKEFILE_LIST) \
+	    | awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
+    ))
