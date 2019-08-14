@@ -25,6 +25,8 @@ VIRTUALENV_DIR  = $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NAM
 VIRTUALENV_BIN  = $(VIRTUALENV_DIR)/bin
 PIP             = $(VIRTUALENV_BIN)/pip
 REQUIREMENTS    = ./requirements.txt
+TO_CLEAN        = *.pyc *.orig
+
 
 .PHONY: help
 help: ## Show this message.
@@ -37,6 +39,11 @@ help: ## Show this message.
 
 .PHONY: init
 init: python requirements ## Init workspace.
+
+.PHONY: clean
+clean: ## Remove all .pyc,.orig,etc..
+
+	@echo -n $(TO_CLEAN) | xargs -d ' ' -I_ find . -type f -name _ -delete
 
 .PHONY: install-pyenv
 install-pyenv: # Install pyenv.
