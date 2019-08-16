@@ -95,8 +95,7 @@ venv: python # Create a virtualenv in the current python version.
 		echo -e "$(YELLOW)--- Creating virtualenv $(VIRTUALENV_NAME) ---$(WHITE)" \
 		&& pyenv virtualenv "$(PYTHON_VERSION)" "$(VIRTUALENV_NAME)" \
 		&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)" \
-	) \
-	||:
+	) ||:
 
 .PHONY: requirements
 requirements: venv ## Install (or update) requirements.
