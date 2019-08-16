@@ -13,7 +13,7 @@ GREEN  = \033[38;05;41m
 YELLOW = \033[38;05;11m
 BLUE   = \033[38;05;33m
 CYAN   = \033[38;05;14m
-ORANGE = \033[38;05;14m
+ORANGE = \033[38;05;202m
 
 PROJECT_NAME    ?= $$(basename $$PWD)
 PYENV_ROOT      ?= $$HOME/.pyenv
