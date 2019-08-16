@@ -67,7 +67,7 @@ install-pyenv: # Install pyenv.
 			xz-utils \
 			tk-dev \
 		&& PYENV_ROOT=$(PYENV_ROOT) bash $(PYENV_INSTALLER) \
-		&& echo "export PATH='$$HOME/.pyenv/bin:$$PATH'" >> $$HOME/.bashrc \
+		&& echo "export PATH='\$$HOME/.pyenv/bin:\$$PATH'" >> $$HOME/.bashrc \
 		&& echo 'eval "$(pyenv init -)"' >> $$HOME/.bashrc \
 		&& echo 'eval "$(pyenv virtualenv-init -)"' >> $$HOME/.bashrc \
 		&& source $$HOME/.bashrc \
