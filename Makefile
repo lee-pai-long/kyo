@@ -40,7 +40,12 @@ help: max-length ## Show this message.
 	   ' $(MAKEFILE_LIST)
 
 .PHONY: init
-init: python requirements ## Init workspace.
+init: python requirements direnv ## Init workspace.
+
+	@echo \
+	&& echo -ne "$(ORANGE)Please reload your bash environement $(WHITE)" \
+	&& echo -e "$(ORANGE)for the modifications to take effects.$(WHITE)" \
+	&& echo "e.g: source ~/.bashrc"
 
 .PHONY: clean
 clean: ## Remove all .pyc,.orig,etc..
