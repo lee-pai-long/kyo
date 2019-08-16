@@ -116,3 +116,14 @@ max-length: # Return the length of the longest explosed(commented with ##) rule 
 		' $(MAKEFILE_LIST) \
 		| awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
 	))
+
+.PHONY: direnv
+direnv: # Install direnv
+
+	@which direnv &> /dev/null \
+	|| ( \
+		echo -e "$(YELLOW)--- Installing direnv ---$(WHITE)" \
+		&& sudo apt install -y direnv \
+		&& echo 'eval "$$(direnv hook bash)"' >> $$HOME/.bashrc \
+		&& direnv allow $$PWD \
+	) && echo -e "$(GREEN)--- direnv installed ---$(WHITE)"
