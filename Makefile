@@ -75,7 +75,6 @@ install-pyenv: # Install pyenv.
 		&& echo "export PATH='\$$HOME/.pyenv/bin:\$$PATH'" >> $$HOME/.bashrc \
 		&& echo 'eval "$$(pyenv init -)"' >> $$HOME/.bashrc \
 		&& echo 'eval "$$(pyenv virtualenv-init -)"' >> $$HOME/.bashrc \
-		&& source $$HOME/.bashrc \
 	) && echo -e "$(GREEN)--- pyenv installed ---$(WHITE)"
 
 .PHONY: update-pyenv
