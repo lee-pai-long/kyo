@@ -50,7 +50,7 @@ clean: ## Remove all .pyc,.orig,etc..
 .PHONY: install-pyenv
 install-pyenv: # Install pyenv.
 
-	@which pyenv \
+	@which pyenv &> /dev/null \
 	|| ( \
 		echo -e "$(YELLOW)--- Installing pyenv ---$(WHITE)" \
 		&& sudo apt-get install -y \
@@ -68,11 +68,10 @@ install-pyenv: # Install pyenv.
 			tk-dev \
 		&& PYENV_ROOT=$(PYENV_ROOT) bash $(PYENV_INSTALLER) \
 		&& echo "export PATH='\$$HOME/.pyenv/bin:\$$PATH'" >> $$HOME/.bashrc \
-		&& echo 'eval "$(pyenv init -)"' >> $$HOME/.bashrc \
-		&& echo 'eval "$(pyenv virtualenv-init -)"' >> $$HOME/.bashrc \
+		&& echo 'eval "$$(pyenv init -)"' >> $$HOME/.bashrc \
+		&& echo 'eval "$$(pyenv virtualenv-init -)"' >> $$HOME/.bashrc \
 		&& source $$HOME/.bashrc \
-		&& echo -e "$(GREEN)--- pyenv installed ---$(WHITE)" \
-	)
+	) && echo -e "$(GREEN)--- pyenv installed ---$(WHITE)"
 
 .PHONY: update-pyenv
 update-pyenv: install-pyenv # Update pyenv to get latest versions.
