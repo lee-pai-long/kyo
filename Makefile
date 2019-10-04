@@ -4,7 +4,6 @@
 # 'make: [target] Error 1 (ignored)' warning message.
 
 # TODO: Find a way to generate envrc.
-# TODO: Add todo rule.
 # TODO: Add a licence.
 
 SHELL := /bin/bash
@@ -30,7 +29,26 @@ VIRTUALENV_BIN  ?= $(VIRTUALENV_DIR)/bin
 PIP             ?= $(VIRTUALENV_BIN)/pip
 REQUIREMENTS    ?= ./requirements.txt
 
-TO_CLEAN        ?= *.pyc *.orig
+TO_CLEAN ?= *.pyc *.orig
+TAGS	  = TODO|FIXME|CHANGED|XXX|REVIEW|BUG|REFACTOR|IDEA|NOTE|WARNING
+
+
+# NOTE: Copied from https://gist.github.com/joechrysler/6073741,
+#       It may not work for every case
+#       (for example if parent is a merge commit),
+#       so it will need some improvement on the go.
+#       For a overview of th show-branch output,
+#       see: https://wincent.com/wiki/Understanding_the_output_of_%22git_show-branch%22
+define _source_branch =
+	git show-branch -a 2> /dev/null \
+	| grep '\*' \
+	| grep -v "$(BRANCH_NAME)" \
+	| head -n1 \
+	| sed 's/.*\[\(.*\)\].*/\1/' \
+	| sed 's/[\^~].*//'
+endef
+source_branch	?= $(_source_branch)
+code			?= $$(git diff --name-only HEAD $(source_branch))
 
 
 .PHONY: help
@@ -136,3 +154,28 @@ direnv: # Install direnv
 		&& echo 'eval "$$(direnv hook bash)"' >> $$HOME/.bashrc \
 		&& direnv allow $$PWD \
 	) && echo -e "$(GREEN)--- direnv installed ---$(WHITE)"
+
+.PHONY: todo
+todo: ## Show todos.
+
+	@find $(code) \
+		-type f \
+		-not -path "./.git/*" \
+		-exec \
+			awk '/[ ]($(TAGS)):/ \
+				{ \
+					gsub("# ", "", $$0); \
+					gsub("// ", "", $$0); \
+					gsub("<!--", "", $$0); gsub("-->", "", $$0); \
+                    gsub(/\.\./, "", $$0); \
+					gsub(/^[ \t]+/, "", $$0); \
+					gsub(/:/, "", $$0); \
+					gsub(/\.\//, "", FILENAME); \
+					TYPE = $$1; $$1 = ""; \
+					MESSAGE = $$0; \
+					LINE = NR; \
+					printf \
+					"$(CYAN)%s|$(WHITE):%s|: $(CYAN)%s$(WHITE)($(BLUE)%s$(WHITE))\n"\
+					, TYPE, MESSAGE, FILENAME, LINE \
+				}' \
+		{} \; | column -s '|' -t
