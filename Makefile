@@ -3,10 +3,8 @@
 # '||:' is a shortcut to '|| true' to avoid the
 # 'make: [target] Error 1 (ignored)' warning message.
 
-# Switch to bash instead of sh
 SHELL := /bin/bash
 
-# Colors.
 WHITE  = \033[38;05;15m
 RED    = \033[38;05;9m
 GREEN  = \033[38;05;41m
@@ -15,12 +13,10 @@ BLUE   = \033[38;05;33m
 CYAN   = \033[38;05;14m
 ORANGE = \033[38;05;202m
 
-# Project.
 PROJECT_NAME    ?= $$(git rev-parse --show-toplevel | xargs basename)
 BRANCH_NAME     ?= $$(git rev-parse --abbrev-ref HEAD)
 PYTHON_VERSION  ?= $$(cat .python-version)
 
-# Helpers.
 PYENV_ROOT      ?= $$HOME/.pyenv
 PYENV_INSTALLER ?= ./bin/pyenv-installer.sh
 
