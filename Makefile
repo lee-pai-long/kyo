@@ -3,6 +3,10 @@
 # '||:' is a shortcut to '|| true' to avoid the
 # 'make: [target] Error 1 (ignored)' warning message.
 
+# TODO: Find a way to generate envrc.
+# TODO: Add todo rule.
+# TODO: Add a licence.
+
 SHELL := /bin/bash
 
 WHITE  = \033[38;05;15m

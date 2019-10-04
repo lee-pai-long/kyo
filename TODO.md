@@ -1,3 +1,0 @@
-- TODO: Find a way to generate envrc.
-- TODO: Add todo rule.
-- TODO: Add a licence.
