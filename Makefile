@@ -1,5 +1,5 @@
-# Onboarding Makefile
-# -------------------
+# Kyo Makefile
+# ------------
 # '||:' is a shortcut to '|| true' to avoid the
 # 'make: [target] Error 1 (ignored)' warning message.
 
