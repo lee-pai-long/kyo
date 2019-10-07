@@ -161,13 +161,13 @@ direnv: # Install direnv
 todo-max-length:  # Return the length of the longest tag name.
 
 	@$(eval TODO_MAX_LENGTH := $(shell \
-        echo '$(TAGS)' \
-	    | sed -e 's/|/\n/g' \
-	    | sort -u \
-	    | awk '{print length}' \
-	    | sort -nr \
-	    | head -1 \
-    ))
+		echo '$(TAGS)' \
+		| sed -e 's/|/\n/g' \
+		| sort -u \
+		| awk '{print length}' \
+		| sort -nr \
+		| head -1 \
+	))
 
 .PHONY: todo
 todo: todo-max-length ## Show todos.
