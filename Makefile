@@ -189,7 +189,8 @@ todo: todo-max-length ## Show todos.
 					MESSAGE = $$0; \
 					LINE = NR; \
 					printf \
-					"$(CYAN)%-$(TODO_MAX_LENGTH)s|$(WHITE):%s|: $(CYAN)%s$(WHITE)($(BLUE)%s$(WHITE))\n"\
-					, TYPE, MESSAGE, FILENAME, LINE \
+						"$(CYAN)%-$(TODO_MAX_LENGTH)s|$(WHITE):"\
+						"%s|: $(CYAN)%s$(WHITE)($(BLUE)%s$(WHITE))\n" \
+						, TYPE, MESSAGE, FILENAME, LINE \
 				}' \
 		{} \; | column -s '|' -t
