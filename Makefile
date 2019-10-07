@@ -52,15 +52,27 @@ code			?= $$(git diff --name-only HEAD $(source_branch))
 
 
 .PHONY: help
-help: max-length ## Show this message.
+help: help-max-length ## Show this message.
 
 	@echo -e "Usage: make [task]\n" \
 	&& echo "Available tasks:" \
 	&& awk ' \
 			BEGIN {FS = ":.*?## "} \
 			/^[a-zA-Z_-]+:.*?## / \
-			{printf "$(CYAN)%-$(MAX_LENGTH)s$(WHITE) : %s\n", $$1, $$2} \
+			{printf "$(CYAN)%-$(HELP_MAX_LENGTH)s$(WHITE) : %s\n", $$1, $$2} \
 	   ' $(MAKEFILE_LIST)
+
+.PHONY: help-max-length
+help-max-length: # Return the length of the longest explosed(commented with ##) rule name.
+
+	@$(eval HELP_MAX_LENGTH := $(shell \
+		awk ' \
+			BEGIN {FS = ":.*?## "} \
+			/^[a-zA-Z_-]+:.*?## / \
+			{print length($$1)} \
+		' $(MAKEFILE_LIST) \
+		| awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
+	))
 
 .PHONY: init
 init: python requirements direnv ## Init workspace.
@@ -131,18 +143,6 @@ requirements: venv ## Install (or update) requirements.
 	&& $(PIP) install --upgrade pip \
 	&& $(PIP) install --upgrade --requirement $(REQUIREMENTS) \
 	&& echo -e "$(GREEN)--- requirements installed ---$(WHITE)"
-
-.PHONY: max-length
-max-length: # Return the length of the longest explosed(commented with ##) rule name.
-
-	@$(eval MAX_LENGTH := $(shell \
-		awk ' \
-			BEGIN {FS = ":.*?## "} \
-			/^[a-zA-Z_-]+:.*?## / \
-			{print length($$1)} \
-		' $(MAKEFILE_LIST) \
-		| awk -v max=0 '{if($$1>max){max=$$1}}END{print max}' \
-	))
 
 .PHONY: direnv
 direnv: # Install direnv
