@@ -155,8 +155,20 @@ direnv: # Install direnv
 		&& direnv allow $$PWD \
 	) && echo -e "$(GREEN)--- direnv installed ---$(WHITE)"
 
+.PHONY: todo-max-length
+todo-max-length:  # Return the length of the longest tag name.
+
+	@$(eval TODO_MAX_LENGTH := $(shell \
+        echo '$(TAGS)' \
+	    | sed -e 's/|/\n/g' \
+	    | sort -u \
+	    | awk '{print length}' \
+	    | sort -nr \
+	    | head -1 \
+    ))
+
 .PHONY: todo
-todo: ## Show todos.
+todo: todo-max-length ## Show todos.
 
 	@find $(code) \
 		-type f \
@@ -175,7 +187,7 @@ todo: ## Show todos.
 					MESSAGE = $$0; \
 					LINE = NR; \
 					printf \
-					"$(CYAN)%s|$(WHITE):%s|: $(CYAN)%s$(WHITE)($(BLUE)%s$(WHITE))\n"\
+					"$(CYAN)%-$(TODO_MAX_LENGTH)s|$(WHITE):%s|: $(CYAN)%s$(WHITE)($(BLUE)%s$(WHITE))\n"\
 					, TYPE, MESSAGE, FILENAME, LINE \
 				}' \
 		{} \; | column -s '|' -t
