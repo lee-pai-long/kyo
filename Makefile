@@ -50,6 +50,8 @@ endef
 source_branch	?= $(_source_branch)
 code			?= $$(git diff --name-only HEAD $(source_branch))
 
+guard-%:
+	@if [ -z "${${*}}" ]; $(error Variable "$*" must be set); fi
 
 .PHONY: help
 help: help-max-length ## Show this message.
