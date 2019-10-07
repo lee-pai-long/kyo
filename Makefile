@@ -33,10 +33,10 @@ TO_CLEAN ?= *.pyc *.orig
 TAGS	  = TODO|FIXME|CHANGED|XXX|REVIEW|BUG|REFACTOR|IDEA|NOTE|WARNING
 
 
-# NOTE: Copied from https://gist.github.com/joechrysler/6073741,
-#       It may not work for every case
+# FIXME: It may not work for every case
 #       (for example if parent is a merge commit),
 #       so it will need some improvement on the go.
+#       Copied from https://gist.github.com/joechrysler/6073741.
 #       For a overview of th show-branch output,
 #       see: https://wincent.com/wiki/Understanding_the_output_of_%22git_show-branch%22
 define _source_branch =
