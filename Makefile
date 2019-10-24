@@ -80,12 +80,12 @@ help-max-length: # Return the length of the longest explosed(commented with ##) 
 init: python requirements direnv ## Init workspace.
 
 	@echo \
-	&& echo -ne "$(ORANGE)Please reload your bash environement $(WHITE)" \
+	&& echo -ne "$(ORANGE)Please reload your bash environment $(WHITE)" \
 	&& echo -e "$(ORANGE)for the modifications to take effects.$(WHITE)" \
 	&& echo "e.g: source ~/.bashrc"
 
 .PHONY: clean
-clean: ## Remove all .pyc,.orig,etc..
+clean: ## Remove all .pyc,.orig etc..
 
 	@echo -n $(TO_CLEAN) | xargs -d ' ' -I_ find . -type f -name _ -delete
 
