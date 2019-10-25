@@ -50,6 +50,8 @@ endef
 source_branch	?= $(_source_branch)
 code			?= $$(git diff --name-only HEAD $(source_branch))
 
+# Make envvar required on some rule,
+# see: https://stackoverflow.com/a/7367903/3775614
 guard-%:
 	@if [ -z "${${*}}" ]; $(error Variable "$*" must be set); fi
 
