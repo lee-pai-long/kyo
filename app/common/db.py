@@ -65,15 +65,13 @@ def session():
         - Close the connection.
     """
     # IDEA: Add a autocommit feature ?
-    # Set up.
+
     connection = engine().connect()
-    sess = Session(bind=connection, expire_on_commit=False)
+    session = Session(bind=connection, expire_on_commit=False)
 
-    # Yield.
-    yield sess
+    yield session
 
-    # Teardown.
-    sess.close()
+    session.close()
     connection.close()
 
 
@@ -116,6 +114,7 @@ class Base:
     @declared_attr
     def __table_args__(cls):  # pylint: disable=no-self-argument
         """Define generic __table_args__ attribute."""
+
         t_args = []
         if cls.__constraints:
             t_args.append(cls.__constraints)
@@ -125,6 +124,7 @@ class Base:
     @declared_attr
     def __tablename__(cls):  # pylint: disable=no-self-argument
         """Define generic __tablename__ attribute."""
+
         return pluralize(cls.__name__)
 
     def save(self, logger=''):
@@ -149,6 +149,7 @@ class Base:
         :raises:
             - SavingModelFailed
         """
+
         log = logging.getLogger(logger)
 
         with session() as db:
@@ -157,20 +158,17 @@ class Base:
             if self.id is not None:
                 self = db.merge(self)
 
-            # Add item to transaction.
             log.debug("Adding a {model} to transaction".format(
                 model=self.__class__.__name__,
             ))
             db.add(self)
 
-            # Try to commit current item.
             try:
                 log.debug("Committing a {model} to database".format(
                     model=self.__class__.__name__,
                 ))
                 db.commit()
 
-            # In case of a db error.
             except SQLAlchemyError as e:
                 log.error("Unable to save a {model}: {error}".format(
                     model=self.__class__.__name__,
@@ -179,7 +177,6 @@ class Base:
                 db.rollback()
                 raise err.SavingModelFailed(str(e))
 
-            # In case of unknown error.
             except Exception as e:
                 log.critical(
                     "Unknown error while saving a {model}: {error}".format(
@@ -190,7 +187,6 @@ class Base:
                 db.rollback()
                 raise err.SavingModelFailed(str(e))
 
-            # In case of success.
             log.info("{model} {id} saved to database".format(
                 model=self.__class__.__name__,
                 id=self.id
@@ -227,18 +223,16 @@ class Base:
             - UnknownModelId
             - FetchingModelFailed
         """
+
         log = logging.getLogger(logger)
 
-        # Compute actual id.
         current_id = id or self.id
 
-        # Validate id.
         if current_id is None:
             raise err.InvalidModelId("Entity's id must not be None")
 
         with session() as db:
 
-            # Try to fetch current item.
             try:
                 log.debug("Fetching {model} {id}".format(
                     model=self.__class__.__name__,
@@ -246,9 +240,8 @@ class Base:
                 ))
                 self = db.query(self.__class__).filter_by(id=current_id).one()
 
-            # In case the id doesn't exist.
             except NoResultFound:
-                log.error("Unkown {model} {id}".format(
+                log.error("Unknown {model} {id}".format(
                     model=self.__class__.__name__,
                     id=current_id
                 ))
@@ -257,7 +250,6 @@ class Base:
                 db.rollback()
                 raise err.UnknownModelId
 
-            # In case of a db error.
             except SQLAlchemyError as e:
                 log.error("Unable to fetch {model} {id}: {error}".format(
                     model=self.__class__.__name__,
@@ -267,7 +259,6 @@ class Base:
                 db.rollback()
                 raise err.FetchingModelFailed(str(e))
 
-            # In case of an unknown error.
             except Exception as e:
                 log.critical(
                     "Unknown error while fetching {model} {id}: {error}".format(
@@ -279,7 +270,6 @@ class Base:
                 db.rollback()
                 raise err.FetchingModelFailed(str(e))
 
-            # In case of success.
             log.debug("{model} {id} fetched from database".format(
                 model=self.__class__.__name__,
                 id=current_id
@@ -307,11 +297,11 @@ class Base:
             - InvalidModelAttribute
             - SelectingModelsFailed
         """
+
         log = logging.getLogger(logger)
 
         with session() as db:
 
-            # Try to select current item.
             try:
                 log.debug("Selecting {model} {args}".format(
                     model=cls.__name__,
@@ -322,14 +312,12 @@ class Base:
                 ))
                 selected = db.query(cls).filter_by(**kwargs).limit(limit).all()
 
-            # In case one of the attributes in unknown.
             except InvalidRequestError as e:
                 log.error("Invalid argument(s) supply for selecting {model}s".format(
                     model=cls.__name__
                 ))
                 raise err.InvalidModelAttribute(str(e))
 
-            # In case of a db error.
             except SQLAlchemyError as e:
                 log.error("Unable to select from {model}: {error}".format(
                     model=cls.__name__,
@@ -337,7 +325,6 @@ class Base:
                 ))
                 raise err.SelectingModelsFailed(str(e))
 
-            # In case of an unknown error.
             except Exception as e:
                 log.critical("Unknown erro while selecting on {model}: {error}".format(
                     model=cls.__name__,
@@ -345,11 +332,11 @@ class Base:
                 ))
                 raise err.SelectingModelsFailed(str(e))
 
-        # In case of success.
         return selected
 
     def __repr__(self):
         """Return printable representation of herited class objects."""
+
         return "{class_name}({attributes})".format(
             class_name=self.__class__.__name__,
             attributes=', '.join([
@@ -360,48 +347,6 @@ class Base:
         )
 
 
-# Actual base class to subclass for models.
+# Actual base class to subclass to create models.
 Model = declarative_base(cls=Base, bind=engine())
 
-# Examples
-# ---------
-# class Some(Model):
-#     """Example Model."""
-#
-#     id = sql.Column(sql.String(32), primary_key=True)
-#     name = sql.Column(sql.String(100))
-#     surname = sql.Column(sql.String(100))
-#
-#     __constraints = (sql.Index(
-#         'uniq_user',
-#         'name',
-#         'surname',
-#         unique=True
-#     ),)
-#
-#     @classmethod
-#     def exists(cls, id):
-#         """Check if the user uuid exist in database.
-#
-#         :parameters:
-#             - id (string): Campaign identifier.
-#
-#         :returns:
-#             - True if the id is in DB, False otherwise.
-#         """
-#         with session() as db:
-#             users = [id for id in db.query(cls.id)]
-#         return id in itertools.chain(*users)
-#
-# class View(Model):
-#     """View example.
-#
-#     see migration for view definition.
-#     """
-#
-#     # WARNING: id is declared as primary key
-#     # so sqlalchemy can map the view, this seems to work all right,
-#     # but it may hide some weird behaviour.
-#     id = sql.Column(sql.Integer, primary_key=True)
-#
-#     _is_view = True
