@@ -18,6 +18,7 @@ CYAN   = \033[38;05;14m
 ORANGE = \033[38;05;202m
 
 PROJECT_NAME    ?= $$(git rev-parse --show-toplevel | xargs basename)
+PROJECT_DIR     ?= $$(git rev-parse --show-toplevel)
 BRANCH_NAME     ?= $$(git rev-parse --abbrev-ref HEAD)
 PYTHON_VERSION  ?= $$(cat .python-version)
 
@@ -29,6 +30,17 @@ VIRTUALENV_DIR  ?= $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NA
 VIRTUALENV_BIN  ?= $(VIRTUALENV_DIR)/bin
 PIP             ?= $(VIRTUALENV_BIN)/pip
 REQUIREMENTS    ?= ./requirements.txt
+
+APP_NAME     = app
+APP_DIR      = /opt/$(APP_NAME)
+APP_WSGI     = $(APP_DIR)/$(SRC_DIR)/wsgi.py
+
+TEST_CMD	= $(VIRTUALENV_BIN)/pytest
+LINT_CMD	= $(VIRTUALENV_BIN)/flake8 --format=pylint
+SMELL_CMD	= $(VIRTUALENV_BIN)/pylint --rcfile=setup.cfg $(APP_NAME)/ tests/
+SAFE_CMD	= $(VIRTUALENV_BIN)/safety check --full-report
+FLASK_CMD 	= $(VIRTUALENV_BIN)/flask
+GUN_CMD     = $(VIRTUALENV_BIN)/gunicorn
 
 TO_CLEAN ?= *.pyc *.orig
 TAGS	  = TODO|FIXME|CHANGED|XXX|REVIEW|BUG|REFACTOR|IDEA|NOTE|WARNING
@@ -197,3 +209,37 @@ todo: todo-max-length ## Show todos.
 						, TYPE, MESSAGE, FILENAME, LINE \
 				}' \
 		{} \; | column -s '|' -t
+
+.PHONY: test
+test: requirements ## Run all tests.
+
+	@echo -e "$(YELLOW)--- Testing ---$(WHITE)" \
+	&& $(TEST_CMD) $(PROJECT_DIR)
+
+.PHONY: lint
+lint: requirements ## Run the linter on all codebase.
+	@echo -e "$(YELLOW)--- Linting error(s) ---$(WHITE)" \
+	&& cd $(PROJECT_DIR) && $(LINT_CMD) ; cd -
+
+.PHONY: shell
+shell: requirements ## Start ipython REPL.
+
+	@$(FLASK_CMD) shell
+
+.PHONY: smell
+smell: requirements ## Check all codebase for code smell.
+
+	@echo -e "$(YELLOW)--- Checking for code smell ---$(WHITE)" \
+	&& cd $(PROJECT_DIR) && $(SMELL_CMD) ; cd - ||:
+
+.PHONY: safe
+safe: requirements ## Check dependencies vulnerability.
+
+	@cd $(PROJECT_DIR) && $(SAFE_CMD) ; cd - ||:
+
+.PHONY: run
+run: requirements ## Start the flask dev server.
+
+	@echo -e "$(GREEN)--- Starting Flask dev server ---$(WHITE)" \
+	&& echo -e "$(BLUE)Usable at: $(YELLOW)http://$(APP_NAME).loc:5000$(WHITE)" \
+	&& $(FLASK_CMD) run -h 0.0.0.0
