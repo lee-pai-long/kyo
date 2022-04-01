@@ -4,7 +4,6 @@ pytest-bdd>=2.21,<2.22
 pytest-flask>=0.10,<0.11
 pytest-cov>=2.5,<2.6
 pytest-helpers-namespace
-ansi2html
 pylint
 flake8
 flake8-per-file-ignores
@@ -12,4 +11,4 @@ flake8-docstrings
 flake8-colors
 pep8-naming
 safety
-markdown
+
