@@ -5,7 +5,8 @@
 
 # TODO: Find a way to generate envrc.
 # TODO: Add a licence.
-
+# TODO: Make branch: create branch + pyenv virtualenv
+# TODO: Make sec: Add git-crypt + sec file to project, see: spotizon...
 SHELL := /bin/bash
 
 WHITE  = \033[38;05;15m
@@ -67,7 +68,7 @@ help: help-max-length ## Show this message.
 	   ' $(MAKEFILE_LIST)
 
 .PHONY: help-max-length
-help-max-length: # Return the length of the longest explosed(commented with ##) rule name.
+help-max-length: # Return the length of the longest exposed(commented with ##) rule name.
 
 	@$(eval HELP_MAX_LENGTH := $(shell \
 		awk ' \
@@ -137,7 +138,7 @@ venv: python # Create a virtualenv in the current python version.
 	&& ( \
 		echo -e "$(YELLOW)--- Creating virtualenv $(VIRTUALENV_NAME) ---$(WHITE)" \
 		&& pyenv virtualenv "$(PYTHON_VERSION)" "$(VIRTUALENV_NAME)" \
-		&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)" \
+		&& echo -e "$(GREEN)--- virtualenv $(VIRTUALENV_NAME) installed ---$(WHITE)" \
 	) ||:
 
 .PHONY: requirements
