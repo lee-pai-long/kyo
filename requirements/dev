@@ -1,2 +1,3 @@
 -r test
 flask-shell-ipython
+litecli

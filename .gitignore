@@ -1,7 +1,9 @@
 .*
 __py*
 *.pyc
+app.db
 !.git*
 !.python-version
 !.editorconfig
-
+!.envrc
+!.coveragerc

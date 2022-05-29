@@ -3,9 +3,7 @@
 # '||:' is a shortcut to '|| true' to avoid the
 # 'make: [target] Error 1 (ignored)' warning message.
 
-# TODO: Find a way to generate envrc.
-# TODO: Add a licence.
-# TODO: Make branch: create branch + pyenv virtualenv
+# TODO: Add a license.
 # TODO: Make sec: Add git-crypt + sec file to project, see: spotizon...
 SHELL := /bin/bash
 
@@ -29,20 +27,17 @@ VIRTUALENV_NAME ?= $(PROJECT_NAME)-$(BRANCH_NAME)
 VIRTUALENV_DIR  ?= $(PYENV_ROOT)/versions/$(PYTHON_VERSION)/envs/$(VIRTUALENV_NAME)
 VIRTUALENV_BIN  ?= $(VIRTUALENV_DIR)/bin
 PIP             ?= $(VIRTUALENV_BIN)/pip
-REQUIREMENTS    ?= ./requirements.txt
+REQUIREMENTS    ?= ./requirements/dev
 
 APP_NAME     = app
 APP_DIR      = /opt/$(APP_NAME)
 APP_WSGI     = $(APP_DIR)/$(SRC_DIR)/wsgi.py
+DB_NAME     ?= $(APP_NAME)
 
-TEST_CMD	= $(VIRTUALENV_BIN)/pytest
-LINT_CMD	= $(VIRTUALENV_BIN)/flake8 --format=pylint
-SMELL_CMD	= $(VIRTUALENV_BIN)/pylint --rcfile=setup.cfg $(APP_NAME)/ tests/
-SAFE_CMD	= $(VIRTUALENV_BIN)/safety check --full-report
-FLASK_CMD 	= $(VIRTUALENV_BIN)/flask
-GUN_CMD     = $(VIRTUALENV_BIN)/gunicorn
+ENV_FILE	?= .env
+ENV_RC_FILE	?= .envrc
 
-TO_CLEAN ?= *.pyc *.orig
+TO_CLEAN ?= *.pyc *.orig __pycache__ .coverage
 TAGS	  = TODO|FIXME|CHANGED|XXX|REVIEW|BUG|REFACTOR|IDEA|NOTE|WARNING
 
 
@@ -51,7 +46,7 @@ TAGS	  = TODO|FIXME|CHANGED|XXX|REVIEW|BUG|REFACTOR|IDEA|NOTE|WARNING
 #       so it will need some improvement on the go.
 #       Copied from https://gist.github.com/joechrysler/6073741.
 #       For a overview of th show-branch output,
-#       see: https://wincent.com/wiki/Understanding_the_output_of_%22git_show-branch%22
+#       see: https://bit.ly/3Nm2m8j.
 define _source_branch =
 	git show-branch -a 2> /dev/null \
 	| grep '\*' \
@@ -61,7 +56,13 @@ define _source_branch =
 	| sed 's/[\^~].*//'
 endef
 source_branch	?= $(_source_branch)
-code			?= $$(git diff --name-only HEAD $(source_branch))
+code			?= $$(git diff --name-only HEAD $$($(source_branch)))
+python_code     ?= $$( \
+    for f in $(code); do if test -f $$f; then echo $$f; fi; done \
+    | grep '.py' \
+    | grep -v '.python-version' \
+)
+test_code   ?= $$(for f in $(python_code); do echo $$f; done | grep 'test.py')
 
 # Make envvar required on some rule,
 # see: https://stackoverflow.com/a/7367903/3775614
@@ -92,7 +93,7 @@ help-max-length: # Return the length of the longest exposed(commented with ##) r
 	))
 
 .PHONY: init
-init: python requirements direnv ## Init workspace.
+init: python requirements direnv env ## Init workspace.
 
 	@echo \
 	&& echo -ne "$(ORANGE)Please reload your bash environment $(WHITE)" \
@@ -102,7 +103,8 @@ init: python requirements direnv ## Init workspace.
 .PHONY: clean
 clean: ## Remove all .pyc,.orig etc..
 
-	@echo -n $(TO_CLEAN) | xargs -d ' ' -I_ find . -type f -name _ -delete
+	@echo -n $(TO_CLEAN) \
+	| xargs --delimiter=' ' -I_ find $(PROJECT_DIR) -name _ -delete
 
 .PHONY: install-pyenv
 install-pyenv: # Install pyenv.
@@ -143,8 +145,8 @@ python: update-pyenv # Install python(from .python-version).
 	&& pyenv install -s "$(PYTHON_VERSION)" \
 	&& echo -e "$(GREEN)--- python $(PYTHON_VERSION) installed ---$(WHITE)"
 
-.PHONY: venv
-venv: python # Create a virtualenv in the current python version.
+.PHONY: create-venv
+create-venv: python # Create a virtualenv in the current python version.
 
 	@[ ! -d "$(VIRTUALENV_DIR)" ] \
 	&& ( \
@@ -154,7 +156,7 @@ venv: python # Create a virtualenv in the current python version.
 	) ||:
 
 .PHONY: requirements
-requirements: venv ## Install (or update) requirements.
+requirements: create-venv ## Install (or update) requirements.
 
 	@echo -e "$(YELLOW)--- Installing requirements ---$(WHITE)" \
 	&& $(PIP) install --upgrade pip \
@@ -211,35 +213,84 @@ todo: todo-max-length ## Show todos.
 		{} \; | column -s '|' -t
 
 .PHONY: test
-test: requirements ## Run all tests.
+test: requirements ## Run tests(Use variable test_code= to run one test).
 
 	@echo -e "$(YELLOW)--- Testing ---$(WHITE)" \
-	&& $(TEST_CMD) $(PROJECT_DIR)
+	&& $(VIRTUALENV_BIN)/pytest $(test_code)
 
+# TODO: Add colors to flake8 output.
 .PHONY: lint
-lint: requirements ## Run the linter on all codebase.
+lint: requirements ## Run the linter.(Use python_code= to lint only one file).
 	@echo -e "$(YELLOW)--- Linting error(s) ---$(WHITE)" \
-	&& cd $(PROJECT_DIR) && $(LINT_CMD) ; cd -
+	&& cd $(PROJECT_DIR) \
+	&& $(VIRTUALENV_BIN)/flake8 --format=pylint $(python_code); cd -
 
 .PHONY: shell
 shell: requirements ## Start ipython REPL.
 
-	@$(FLASK_CMD) shell
+	@$(VIRTUALENV_BIN)/flask shell
 
+# FIXME: This task doesn't work,
+#        pylint doesn't look in subdirectories and I tries using find
+#        to force it to run for each subdirectory but it didn't work.
 .PHONY: smell
-smell: requirements ## Check all codebase for code smell.
+smell: requirements # Check all codebase for code smell.
 
-	@echo -e "$(YELLOW)--- Checking for code smell ---$(WHITE)" \
-	&& cd $(PROJECT_DIR) && $(SMELL_CMD) ; cd - ||:
+	@echo -e "$(YELLOW)--- Checking for code smells ---$(WHITE)" \
+	&& cd $(PROJECT_DIR) \
+	&& PYTHONPATH=. $(VIRTUALENV_BIN)/pylint \
+		--rcfile=setup.cfg \
+		$(python_code) ; \
+		cd - ||:
 
 .PHONY: safe
 safe: requirements ## Check dependencies vulnerability.
 
-	@cd $(PROJECT_DIR) && $(SAFE_CMD) ; cd - ||:
+	@cd $(PROJECT_DIR) \
+	&& $(VIRTUALENV_BIN)/safety check --full-report ; cd - ||:
 
 .PHONY: run
 run: requirements ## Start the flask dev server.
 
 	@echo -e "$(GREEN)--- Starting Flask dev server ---$(WHITE)" \
-	&& echo -e "$(BLUE)Usable at: $(YELLOW)http://$(APP_NAME).loc:5000$(WHITE)" \
-	&& $(FLASK_CMD) run -h 0.0.0.0
+	&& echo -e \
+		"$(BLUE)Usable at: $(YELLOW)http://$(APP_NAME).loc:5000$(WHITE)" \
+	&& $(VIRTUALENV_BIN)/flask run -h 0.0.0.0
+
+$(ENV_RC_FILE): direnv # Generate a direnv file.
+
+	@echo 'dotenv' > $@
+
+$(ENV_FILE): $(ENV_RC_FILE) ## Generate a .env file.
+
+	@{ \
+		echo "# $(PROJECT_NAME) env for branch $(BRANCH_NAME)" ; \
+		echo ; \
+		echo "FLASK_APP=$(PROJECT_DIR)/app/wsgi.py" ; \
+		echo "VIRTUALENV=$(VIRTUALENV_NAME)" ; \
+		echo "FLASK_ENV=development" ; \
+	} > $@
+
+.PHONY: env
+env: $(ENV_FILE) $(ENV_RC_FILE) ## Create .env, .envrc and load direnv.
+
+.PHONY: rm-venv
+rm-venv: create-venv ## Delete virtualenv so we can recreate it
+
+	@rm -fr $(VIRTUALENV_DIR)
+
+.PHONY: sqlite
+sqlite: ## Install SQLite(only works for Ubuntu 18.04)
+
+	@which sqlite3 &> /dev/null \
+	|| ( \
+		sudo apt update \
+		&& sudo apt install sqlite3 \
+        && echo -e "$(GREEN) --- SQLite version installed: ---$(WHITE)" \
+	    && sqlite3 --version
+	)
+
+.PHONY: db
+db: sqlite ## Create the database and/or connect ot it.
+
+	@$(VIRTUALENV_BIN)/litecli $(PROJECT_DIR)/$(DB_NAME).db

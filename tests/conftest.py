@@ -5,9 +5,7 @@
 #         without having to list every fixtures and helpers
 #         individually.
 
-from tests.fixtures.api import *
 from tests.fixtures.db import *
-from tests.fixtures.utils import *
 
 opts = [
     {

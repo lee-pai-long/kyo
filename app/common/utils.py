@@ -1,21 +1,17 @@
-"""app helpers modules.
+"""app helpers modules."""
 
-:contains:
-    - log_handler: To create a log handler to attach to our app.
-    - db_session: Generate a database session.
-"""
-
-# Standard.
 import logging
+import os
+
 # Importing only logging don't give access to handlers module...
 # because the handlers module isn't exported in logging/__init__.py.
 # see:
 # - https://github.com/python/cpython/tree/master/Lib/logging
 # - https://github.com/python/cpython/blob/master/Lib/logging/__init__.py
 from logging.handlers import WatchedFileHandler
-import os
+from dateutil.parser import parse
 
-# Internal.
+
 from app.common.config import Config
 
 
@@ -39,24 +35,34 @@ def log_handler(filename, name=None):
     :returns:
         - handler(logging.handlers.WatchedFileHandler)
     """
-    # Create log handler.
     handler = WatchedFileHandler(os.path.join(
-        Config.LOG_DIRECTORY,
-        "{filename}.log".format(filename=filename)
+        Config.LOG_DIRECTORY, f"{filename}.log"
     ))
 
-    # Set handler's name.
     handler.name = name or filename
 
-    # Set log level.
     handler.setLevel(Config.LOG_LEVEL)
 
-    # Add formatter.
     handler.setFormatter(logging.Formatter(
         "[%(asctime)s] %(levelname)-8s "
-        "| (%(process)d) [%(thread)d] "
-        "%(module)s.%(funcName)s:%(lineno)d -> %(message)s"
+        "| %(module)s.%(funcName)s:%(lineno)d -> %(message)s"
     ))
 
-    # Return handler object.
     return handler
+
+
+def is_date(date_string, fuzzy=False):
+    """Return whether the string can be interpreted as a date.
+
+    Based on the following stack overflow answer:
+    https://stackoverflow.com/a/25341965/3775614
+
+    :parameters:
+        - date_string (str): string to check for date
+        - fuzzy (bool): ignore unknown tokens in string if True
+    """
+    try:
+        parse(string, fuzzy=fuzzy)
+    except ValueError:
+        return False
+    return True

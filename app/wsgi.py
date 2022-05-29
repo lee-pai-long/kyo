@@ -34,8 +34,8 @@ limit_request_line = app.config['GUNICORN_LIMIT_REQUEST_LINE']
 limit_request_fields = app.config['GUNICORN_LIMIT_REQUEST_FIELDS']
 limit_request_field_size = app.config['GUNICORN_LIMIT_REQUEST_FIELD_SIZE']
 # NOTE: If this line highlight like a built-in,
-#       it's because reload was in python 2
-#       and your editor doesn't differentiate between the two version.
+#       it's because reload a python 2 built-in
+#       and your editor doesn't differentiate between the two versions.
 reload = app.config['GUNICORN_RELOAD']
 reload_engine = app.config['GUNICORN_RELOAD_ENGINE']
 spew = app.config['GUNICORN_SPEW']
@@ -45,8 +45,9 @@ chdir = app.config['GUNICORN_CHDIR']
 daemon = app.config['GUNICORN_DAEMON']
 pidfile = app.config['GUNICORN_PIDFILE']
 worker_tmp_dir = app.config['GUNICORN_WORKER_TMP_DIR']
-user = app.config['GUNICORN_USER']
-group = app.config['GUNICORN_GROUP']
+# Uncomment when deployment is added and we have a gunicorn user.
+# user = app.config['GUNICORN_USER']
+# group = app.config['GUNICORN_GROUP']
 umask = app.config['GUNICORN_UMASK']
 initgroups = app.config['GUNICORN_INITGROUPS']
 forwarded_allow_ips = app.config['GUNICORN_FORWARDED_ALLOW_IPS']

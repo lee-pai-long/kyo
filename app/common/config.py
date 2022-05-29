@@ -3,10 +3,13 @@
 :contains:
     - Config: Class containing configuration keys.
 """
-# IDEA: Maybe use the ChainMap(https://goo.gl/AP8PZb) class to dynamize loading conf...
-# Standard
+
+# IDEA: Maybe use the ChainMap(https://goo.gl/AP8PZb)
+# class to dynamize loading conf...
+
 import os
-import pwd
+# Uncomment when defining GUNICORN_USER and GUNICORN_GROUP
+# import pwd
 
 
 class Config:
@@ -105,10 +108,12 @@ class Config:
     """
 
     # pylint: disable=too-few-public-methods
-    #       This class is indented to be use this way (see: https://goo.gl/yPPhyQ).
+    #       This class is intended to be use this way
+    #       (see: https://goo.gl/yPPhyQ).
 
     # --- Constants
     RUN_DIRECTORY = os.environ.get('APP_RUN_DIRECTORY', '/var/run/app')
+    LOG_DIRECTORY = os.environ.get('APP_LOG_DIRECTORY', '/var/log/app')
 
     # --- App configuration.
     TESTING = os.environ.get('APP_TESTING', False)
@@ -122,15 +127,16 @@ class Config:
     DB_USER = os.environ.get('APP_DB_USER', 'app')
     DB_PASSWORD = os.environ.get('APP_DB_PASSWORD', 'app')
     DB_NAME = os.environ.get('APP_DB_NAME', 'App')
-    # TODO: Change to postgres.
+    # TODO: Change to postgres.
     DB_SOCKET = os.environ.get('APP_DB_SOCKET', '/var/run/mysqld/mysqld.sock')
-    db_uri = 'mysql+pymysql://{user}:{password}@localhost/{db}?unix_socket={socket}'
-    SQLALCHEMY_DATABASE_URI = db_uri.format(
-        user=DB_USER,
-        password=DB_PASSWORD,
-        db=DB_NAME,
-        socket=DB_SOCKET
+    # WARNING: This two following variables combination fails to create
+    #          the sqlite database in the root directory of the project,
+    #          it instead creates it in app/common.
+    ROOT_DIR = os.path.dirname(os.path.abspath(__file__))
+    APP_DATABASE_FILE = os.environ.get(
+        "APP_DB", os.path.join(ROOT_DIR, "app.db")
     )
+    SQLALCHEMY_DATABASE_URI = f"sqlite:///{APP_DATABASE_FILE}"
 
     SQLALCHEMY_TRACK_MODIFICATIONS = bool(int(os.environ.get(
         'SQLALCHEMY_TRACK_MODIFICATIONS',
@@ -142,20 +148,31 @@ class Config:
     # --- Gunicorn configuration.
     GUNICORN_BIND = os.environ.get(
         'GUNICORN_BIND',
+        # pylint: disable=consider-using-f-string
         "unix:{path}".format(path=os.path.join(RUN_DIRECTORY, 'gunicorn.sock'))
     )
     GUNICORN_BACKLOG = os.environ.get('GUNICORN_BACKLOG', 2048)
     GUNICORN_WORKERS = os.environ.get('GUNICORN_WORKERS', 1)
     GUNICORN_WORKER_CLASS = os.environ.get('GUNICORN_WORKER_CLASS', 'sync')
     GUNICORN_THREADS = os.environ.get('GUNICORN_THREADS', 1)
-    GUNICORN_WORKER_CONNECTIONS = os.environ.get('GUNICORN_WORKER_CONNECTIONS', 1000)
+    GUNICORN_WORKER_CONNECTIONS = os.environ.get(
+        'GUNICORN_WORKER_CONNECTIONS', 1000
+    )
     GUNICORN_MAX_REQUESTS = os.environ.get('GUNICORN_MAX_REQUESTS', 0)
-    GUNICORN_MAX_REQUESTS_JITTER = os.environ.get('GUNICORN_MAX_REQUESTS_JITTER', 0)
+    GUNICORN_MAX_REQUESTS_JITTER = os.environ.get(
+        'GUNICORN_MAX_REQUESTS_JITTER', 0
+    )
     GUNICORN_TIMEOUT = os.environ.get('GUNICORN_TIMEOUT', 30)
-    GUNICORN_GRACEFUL_TIMEOUT = os.environ.get('GUNICORN_GRACEFUL_TIMEOUT', 30)
+    GUNICORN_GRACEFUL_TIMEOUT = os.environ.get(
+        'GUNICORN_GRACEFUL_TIMEOUT', 30
+    )
     GUNICORN_KEEPALIVE = os.environ.get('GUNICORN_KEEPALIVE', 2)
-    GUNICORN_LIMIT_REQUEST_LINE = os.environ.get('GUNICORN_LIMIT_REQUEST_LINE', 4096)
-    GUNICORN_LIMIT_REQUEST_FIELDS = os.environ.get('GUNICORN_LIMIT_REQUEST_FIELDS', 100)
+    GUNICORN_LIMIT_REQUEST_LINE = os.environ.get(
+        'GUNICORN_LIMIT_REQUEST_LINE', 4096
+    )
+    GUNICORN_LIMIT_REQUEST_FIELDS = os.environ.get(
+        'GUNICORN_LIMIT_REQUEST_FIELDS', 100
+    )
     GUNICORN_LIMIT_REQUEST_FIELD_SIZE = os.environ.get(
         'GUNICORN_LIMIT_REQUEST_FIELD_SIZE',
         8190
@@ -163,10 +180,15 @@ class Config:
     GUNICORN_RELOAD = bool(int(os.environ.get('GUNICORN_RELOAD', False)))
     GUNICORN_RELOAD_ENGINE = os.environ.get('GUNICORN_RELOAD_ENGINE', 'auto')
     GUNICORN_SPEW = bool(int(os.environ.get('GUNICORN_SPEW', False)))
-    GUNICORN_CHECK_CONFIG = bool(int(os.environ.get('GUNICORN_CHECK_CONFIG', False)))
-    GUNICORN_PRELOAD_APP = bool(int(os.environ.get('GUNICORN_PRELOAD_APP', False)))
+    GUNICORN_CHECK_CONFIG = bool(int(os.environ.get(
+        'GUNICORN_CHECK_CONFIG', False
+    )))
+    GUNICORN_PRELOAD_APP = bool(int(os.environ.get(
+        'GUNICORN_PRELOAD_APP', False
+    )))
     # If the sendfile setting is None it will read the envvar SENDFILE,
-    # So we force the value to force disabling it set(see: https://goo.gl/m8Pwsz).
+    # So we force the value to force disabling it set
+    # (see: https://goo.gl/m8Pwsz).
     GUNICORN_SENDFILE = False
     GUNICORN_CHDIR = os.environ.get(
         'GUNICORN_CHDIR',
@@ -181,13 +203,18 @@ class Config:
         'GUNICORN_WORKER_TMP_DIR',
         os.path.join(os.path.sep, 'tmp')
     )
-    GUNICORN_USER = os.environ.get('GUNICORN_USER', pwd.getpwnam('app').pw_uid)
-    GUNICORN_GROUP = os.environ.get(
-        'GUNICORN_GROUP',
-        pwd.getpwnam('app').pw_gid
-    )
+    # Uncomment when you can create an app user in the target system.
+    # GUNICORN_USER = os.environ.get(
+    #     'GUNICORN_USER', pwd.getpwnam('app').pw_uid
+    # )
+    # GUNICORN_GROUP = os.environ.get(
+    #     'GUNICORN_GROUP',
+    #     pwd.getpwnam('app').pw_gid
+    # )
     GUNICORN_UMASK = os.environ.get('GUNICORN_UMASK', 0)
-    GUNICORN_INITGROUPS = bool(int(os.environ.get('GUNICORN_INITGROUPS', False)))
+    GUNICORN_INITGROUPS = bool(int(os.environ.get(
+        'GUNICORN_INITGROUPS', False
+    )))
     GUNICORN_FORWARDED_ALLOW_IPS = os.environ.get(
         'GUNICORN_FORWARDED_ALLOW_IPS',
         '127.0.0.1'
