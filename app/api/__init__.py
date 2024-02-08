@@ -5,7 +5,7 @@ from flask_restful import Api
 from flask_sqlalchemy import SQLAlchemy
 
 from app.common.config import Config
-# Uncomment when deployment is setup and the log
+# Uncomment when deployment this setup and the log
 # directory and log file can be created
 # from app.common.utils import log_handler
 
